@@ -1,10 +1,12 @@
 # app/api.py
 import json
-from fastapi import FastAPI, Body, Depends
+from fastapi import FastAPI, Request, Body, Depends
 from app.model import UserSchema, UserLoginSchema
 from app.auth.auth_handler import signJWT
 from app.auth.auth_bearer import JWTBearer
-
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 # membuka file menu.json
 with open("menu.json", "r") as read_file: 
@@ -21,6 +23,18 @@ users = [
 ]
 
 app = FastAPI() 
+
+
+templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    data = {
+        "page": "Home page"
+    }
+    return templates.TemplateResponse("page.html", {"request": request, "data": data})
+
 
 @app.get("/", tags=["root"])
 async def read_root() -> dict:
@@ -48,13 +62,12 @@ async def read_menu(item_id: int) -> dict:
 
 # menambahkan menu
 @app.post('/menu', dependencies=[Depends(JWTBearer())], tags=['CRUD Menu'])
-async def Add_menu(name: str): 
+async def Add_menu(name: str) ->dict: 
     id=1
     if(len(data["menu"])>0):
         id=data["menu"][len(data["menu"])-1]["id"]+1
     new_data={'id':id,'name':name}
     data['menu'].append(dict(new_data))
-
 
     #melakukan rewrite
     read_file.close()
@@ -98,17 +111,15 @@ async def read_all_user():
 @app.put('/menu/{item_id}', dependencies=[Depends(JWTBearer())], tags=['CRUD Menu'])
 async def update_menu(item_id: int, name: str): 
     for menu_item in data['menu']:
-        if menu_item['id'] ==item_id:
+        if menu_item['id'] == item_id:
             menu_item['name']= name
             read_file.close()
             with open("menu.json","w") as write_file:
                 json.dump(data,write_file,indent=4)
             write_file.close()
-
             return{"message":"Data berhasil diupdate"}
-    raise HTTPException(
-        status_code=500, detail=f'Internal server error'
-    )
+        else :
+            return{"message":"Data tidak ditemukan."}
 
 
 # menghapus salah satu menu
@@ -116,16 +127,20 @@ async def update_menu(item_id: int, name: str):
 async def delete_menu(item_id: int, name: str): 
     for menu_item in data['menu']:
         if menu_item['id'] == item_id:
-            data['menu'].remove(menu_item)
-            read_file.close()
-            with open("menu.json","w") as write_file:
-                json.dump(data,write_file,indent=4)
-            write_file.close()
+            if menu_item['name'] == name:
+                remove_data={'id':item_id,'name':name}
+                data['menu'].remove(dict(remove_data))
+                # rewrite menu.json
+                read_file.close()
+                with open("menu.json","w") as write_file:
+                    json.dump(data,write_file,indent=4)
+                write_file.close()
+                return{"message":"Data berhasil dihapus"}
+            else :
+                return {"message":"Error : data tidak sesuai. Perhatikan nomor dan nama menu harus sesuai"}
+    else :
+        return {"message":"Error : Data tidak ditemukan."}
 
-        return{"message":"Data berhasil dihapus"}
-    raise HTTPException(
-        status_code=404, detail=f'Item not found'
-    )
 
 
 

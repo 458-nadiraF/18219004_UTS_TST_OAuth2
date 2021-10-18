@@ -10,11 +10,15 @@
         },
         {
             "id": 3,
-            "name": "Ikan"
+            "name": "ikan"
         },
         {
             "id": 4,
             "name": "ayam"
+        },
+        {
+            "id": 6,
+            "name": "bakso"
         }
     ]
 }
