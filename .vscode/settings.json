@@ -30,6 +30,6 @@
         "venv.bak{,/**}",
         ".vscode{,/**}"
     ],
-    "appService.defaultWebAppToDeploy": "/subscriptions/b09d7d6b-3f11-41a0-93cd-5fd1780851f8/resourceGroups/II3160_TST_UTS_18219004/providers/Microsoft.Web/sites/18219004-UTS-TST",
-    "appService.deploySubpath": "."
+    "appService.deploySubpath": ".",
+    "appService.defaultWebAppToDeploy": "/subscriptions/b09d7d6b-3f11-41a0-93cd-5fd1780851f8/resourceGroups/18219004-UTS-II3160/providers/Microsoft.Web/sites/18219004ujiantst"
 }
