@@ -1,11 +1,11 @@
-# app/api.py
+# main.py
 import json
 from fastapi import FastAPI, Request, Body, Depends
 from app.model import UserSchema, UserLoginSchema
 from app.auth.auth_handler import signJWT
 from app.auth.auth_bearer import JWTBearer
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+# from fastapi.responses import HTMLResponse
+# from fastapi.templating import Jinja2Templates
 
 
 # membuka file menu.json
@@ -23,15 +23,19 @@ users = [
 ]
 
 app = FastAPI() 
-templates = Jinja2Templates(directory="templates")
+# templates = Jinja2Templates(directory="templates")
 
 
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    data = {
-        "page": "Home page"
-    }
-    return templates.TemplateResponse("page.html", {"request": request, "data": data})
+# @app.get("/", response_class=HTMLResponse)
+# async def home(request: Request):
+#     data = {
+#         "page": "Home page"
+#     }
+#     return templates.TemplateResponse("page.html", {"request": request, "data": data})
+
+@app.get('/')
+def root():
+    return{'Nim : 18219004'}
 
 
 # menghasilkan semua data dalam menu.json
@@ -54,7 +58,7 @@ async def read_menu(item_id: int) -> dict:
 
 
 # menambahkan menu
-@app.post('/menu', dependencies=[Depends(JWTBearer())], tags=['CRUD Menu'])
+@app.post('/menu/{name}', dependencies=[Depends(JWTBearer())], tags=['CRUD Menu'])
 async def Add_menu(name: str) ->dict: 
     for menu_item in data['menu']:
         if menu_item['name'] == name:
