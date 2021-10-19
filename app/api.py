@@ -118,8 +118,8 @@ async def update_menu(item_id: int, name: str):
                 json.dump(data,write_file,indent=4)
             write_file.close()
             return{"message":"Data berhasil diupdate"}
-        else :
-            return{"message":"Data tidak ditemukan."}
+    else :
+        return{"message":"Data tidak ditemukan."}
 
 
 # menghapus salah satu menu
