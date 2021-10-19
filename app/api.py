@@ -8,12 +8,13 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+
 # membuka file menu.json
 with open("menu.json", "r") as read_file: 
     data = json.load(read_file)
 
 
-# menampung nama user.
+# menampung nama users.
 users = [ 
     {
     "fullname": "Anita Satria Dewi Fina",
@@ -28,6 +29,7 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Menampilkan page home
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     data = {
@@ -52,7 +54,7 @@ async def read_all_menu() -> dict:
 async def read_menu(item_id: int) -> dict:
     if item_id > len(data['menu']):
         return {
-            "error": "No such menu with the supplied ID."
+            "error": "Tidak ada menu dengan ID tersebut. Permintaan gagal diproses."
         }
 
     for menu_item in data['menu']:
@@ -63,20 +65,22 @@ async def read_menu(item_id: int) -> dict:
 # menambahkan menu
 @app.post('/menu', dependencies=[Depends(JWTBearer())], tags=['CRUD Menu'])
 async def Add_menu(name: str) ->dict: 
-    id=1
-    if(len(data["menu"])>0):
-        id=data["menu"][len(data["menu"])-1]["id"]+1
-    new_data={'id':id,'name':name}
-    data['menu'].append(dict(new_data))
+    for menu_item in data['menu']:
+        if menu_item['name'] == name:
+            return {"error":"Terjadi duplikasi nama menu. Permintaan gagal diproses."}
+    else :
+        id= len(data["menu"]) + 1
+        new_data={'id':id,'name':name}
+        data['menu'].append(dict(new_data))
 
-    #melakukan rewrite
-    read_file.close()
-    with open("menu.json","w") as write_file:
-        json.dump(data,write_file,indent=4)
-    write_file.close()
-    return {
-        "data": "post added."
-    }
+        #melakukan rewrite
+        read_file.close()
+        with open("menu.json","w") as write_file:
+            json.dump(data,write_file,indent=4)
+        write_file.close()
+        return {
+            "message": "Menu berhasil ditambahkan."
+        }
 
 
 @app.post("/user/signup", tags=["user"])
@@ -97,14 +101,8 @@ async def user_login(user: UserLoginSchema = Body(...)):
     if check_user(user):
         return signJWT(user.username)
     return {
-        "error": "Wrong login details!"
+        "error": "Username atau password salah. Permintaan login gagal diproses."
     }
-
-
-# menghasilkan semua nama user
-@app.get('/user', tags=["user"]) 
-async def read_all_user(): 
-    return users
 
 
 # mengupdate menu
@@ -117,9 +115,9 @@ async def update_menu(item_id: int, name: str):
             with open("menu.json","w") as write_file:
                 json.dump(data,write_file,indent=4)
             write_file.close()
-            return{"message":"Data berhasil diupdate"}
+            return{"message":"Data telah berhasil disunting."}
     else :
-        return{"message":"Data tidak ditemukan."}
+        return{"error":"Data tidak ditemukan. Permintaan gagal diproses."}
 
 
 # menghapus salah satu menu
@@ -137,9 +135,9 @@ async def delete_menu(item_id: int, name: str):
                 write_file.close()
                 return{"message":"Data berhasil dihapus"}
             else :
-                return {"message":"Error : data tidak sesuai. Perhatikan nomor dan nama menu harus sesuai"}
+                return {"error":"Data nomor dan nama menu tidak sesuai. Permintaan gagal diproses."}
     else :
-        return {"message":"Error : Data tidak ditemukan."}
+        return {"error":"Data tidak ditemukan. Permintaan gagal diproses."}
 
 
 
