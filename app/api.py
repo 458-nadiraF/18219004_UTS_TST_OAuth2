@@ -5,7 +5,6 @@ from app.model import UserSchema, UserLoginSchema
 from app.auth.auth_handler import signJWT
 from app.auth.auth_bearer import JWTBearer
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 
@@ -24,23 +23,15 @@ users = [
 ]
 
 app = FastAPI() 
-
-
 templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Menampilkan page home
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     data = {
         "page": "Home page"
     }
     return templates.TemplateResponse("page.html", {"request": request, "data": data})
-
-
-@app.get("/", tags=["root"])
-async def read_root() -> dict:
-    return {'Menu' : 'Item'}
 
 
 # menghasilkan semua data dalam menu.json
@@ -83,7 +74,7 @@ async def Add_menu(name: str) ->dict:
         }
 
 
-@app.post("/user/signup", tags=["user"])
+@app.post("/user/signup", tags=["User"])
 async def create_user(user: UserSchema = Body(...)):
     users.append(user) # replace with db call, making sure to hash the password first
     return signJWT(user.username)
@@ -96,7 +87,7 @@ def check_user(data: UserLoginSchema):
     return False
 
 
-@app.post("/user/login", tags=["user"])
+@app.post("/user/login", tags=["User"])
 async def user_login(user: UserLoginSchema = Body(...)):
     if check_user(user):
         return signJWT(user.username)
